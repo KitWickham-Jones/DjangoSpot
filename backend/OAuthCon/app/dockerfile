@@ -6,4 +6,10 @@ COPY . .
 
 RUN pip install -r requirements.txt
 
+RUN apt-get update && apt-get install postgresql-client -y
+
+
+#postgres client to access from inside container
+
+
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

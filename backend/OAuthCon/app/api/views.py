@@ -6,6 +6,7 @@ import base64
 import requests
 from dotenv import load_dotenv
 from urllib.parse import urlencode
+from .models import listenData
 
 # Create your views here.
 
@@ -65,6 +66,7 @@ class spotifyRecentPlays(View):
 			for i in range(0, len(data['items'])):
 				artist = data['items'][i]['track']['artists'][0]['name']
 				song = data['items'][i]['track']['name']
+				listenData.objects.create(artist_id=artist, song_id=song)
 				songArtist.append({
 					'Artist' : artist,
 					'Song' : song
