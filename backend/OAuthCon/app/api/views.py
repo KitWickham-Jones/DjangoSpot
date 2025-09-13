@@ -1,12 +1,13 @@
 from django.shortcuts import redirect
 from django.http import HttpResponse , JsonResponse
 from django.views import View
+from django.db import IntegrityError
 import os
 import base64
 import requests
 from dotenv import load_dotenv
 from urllib.parse import urlencode
-from .models import listenData
+from .models import listenData, Artist,genreData
 
 # Create your views here.
 
@@ -49,7 +50,7 @@ class spotifyCallback(View):
 				return HttpResponse('Error generating access token')
 			data = resp.json()
 			request.session['access_token'] = data.get('access_token')
-			return HttpResponse(data.get('access_token'))
+			return HttpResponse(resp)
 		except Exception as e:
 			return HttpResponse(f"Error in Callback: {str(e)}", status=500)
 	
@@ -57,20 +58,45 @@ class spotifyRecentPlays(View):
 	def get(self,request):
 		try:	
 			url = 'https://api.spotify.com/v1/me/player/recently-played'
+			params = {
+				'limit' : 50
+			}
+			
 			headers = {
 				'Authorization' : 'Bearer ' + request.session['access_token']
 			}
-			resp = requests.get(url=url, headers=headers)
+			resp = requests.get(url=url ,params=params, headers=headers)
+			if resp.status_code != 200:
+				return HttpResponse('check access token!')
 			data = resp.json()
 			songArtist = []
-			for i in range(0, len(data['items'])):
-				artist = data['items'][i]['track']['artists'][0]['name']
-				song = data['items'][i]['track']['name']
-				listenData.objects.create(artist_id=artist, song_id=song)
+			for item in data['items']:
+				artist = item['track']['artists'][0]['name']
+				artist_id = item['track']['artists'][0]['id']
+				song = item['track']['name']
+				played_at = item['played_at']
+				try:
+					key , _ = Artist.objects.get_or_create(
+						artist_name = artist,
+						artist_id = artist_id
+						)
+					listenData.objects.create(
+						artist_name=key,
+						song_id=song,
+						time = played_at
+					)
+				except IntegrityError as ie:
+					return HttpResponse(f"Error during insertion into database: {str(ie)}", status =500)			
 				songArtist.append({
 					'Artist' : artist,
-					'Song' : song
+					'Artist_id': artist_id,
+					'Song' : song,
+					'Played' : played_at
 				})
 			return JsonResponse({'songs': songArtist})
 		except Exception as e:
 			return HttpResponse(f"Error in getting recently played: {str(e)}",status=500)
+		
+# class spotifySongGenres(View):
+# 	def get(self, request):
+# 		try:

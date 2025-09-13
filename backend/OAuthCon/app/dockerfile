@@ -1,14 +1,14 @@
-FROM python:3.12
+FROM python:3.12-alpine
 
 WORKDIR /app
 
-COPY . .
+COPY requirements.txt .
 
 RUN pip install -r requirements.txt
 
-RUN apt-get update && apt-get install postgresql-client -y
+RUN apk update && apk add postgresql-client 
 
-
+COPY . .
 #postgres client to access from inside container
 
 
