@@ -1,4 +1,4 @@
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.http import HttpResponse , JsonResponse
 from django.views import View
 from django.db import IntegrityError
@@ -12,6 +12,9 @@ from .models import listenData, Artist,genreData
 # Create your views here.
 
 load_dotenv()
+
+auth_str = f'{os.getenv('CLIENT_ID')}:{os.getenv('CLIENT_SECRET')}'
+b64_encode = base64.b64encode(auth_str.encode()).decode()
 
 class spotifyLogin(View):
 	def get(self, request):
@@ -33,9 +36,7 @@ class spotifyCallback(View):
 			code = request.GET.get('code')
 			if not code:
 				return HttpResponse("Missing Auth Code during callback")
-			redirect_uri = 'http://127.0.0.1:8000/api/callback'
-			auth_str = f'{os.getenv('CLIENT_ID')}:{os.getenv('CLIENT_SECRET')}'
-			b64_encode = base64.b64encode(auth_str.encode()).decode()
+			redirect_uri = 'http://127.0.0.1:8000/api/callback'	
 			data = {
 				'grant_type':'authorization_code',
 				'code':code,
@@ -47,12 +48,14 @@ class spotifyCallback(View):
 			}
 			resp = requests.post('https://accounts.spotify.com/api/token', data = data, headers=headers)
 			if resp.status_code != 200:
-				return HttpResponse('Error generating access token')
+				render({'error_message' : f"Error generating access token: {str(e)}"}, status=500)
 			data = resp.json()
 			request.session['access_token'] = data.get('access_token')
-			return HttpResponse(resp)
+			request.session['refresh_token'] = data.get('refresh_token')
+			return render(request, 'navigate.html' )
 		except Exception as e:
-			return HttpResponse(f"Error in Callback: {str(e)}", status=500)
+			# return HttpResponse(f"Error in Callback: {str(e)}", status=500)
+			return render(request, 'navigate.html',{'error_message' : f"Error in Callback: {str(e)}"}, status=500 )
 	
 class spotifyRecentPlays(View):
 	def get(self,request):
@@ -67,7 +70,23 @@ class spotifyRecentPlays(View):
 			}
 			resp = requests.get(url=url ,params=params, headers=headers)
 			if resp.status_code != 200:
-				return HttpResponse('check access token!')
+				try:
+					headers = {
+						'Authorization': f'Basic {b64_encode}',
+						'Content-Type' : 'application/x-www-form-urlencoded'
+					}
+					data = {
+						'grant_type':'refresh_token',
+						'refresh_token':request.session['refresh_token']
+					}
+					refresh  = requests.post('https://accounts.spotify.com/api/token', headers=headers, data=data)
+					if refresh.status_code == 200:
+						refresh = refresh.json()
+						request.session['access_token'] = refresh.get('access_token')
+						request.session['refresh_token'] = refresh.get('refresh_token')
+						return redirect('http://127.0.0.1:8000/api/recentPlay/')
+				except Exception as e:
+					return render(request, 'navigate.html',{'error_message' : f"Error whilst using refresh token! : {str(e)}"}, status=500 )
 			data = resp.json()
 			songArtist = []
 			for item in data['items']:
@@ -95,8 +114,32 @@ class spotifyRecentPlays(View):
 				})
 			return JsonResponse({'songs': songArtist})
 		except Exception as e:
-			return HttpResponse(f"Error in getting recently played: {str(e)}",status=500)
+			return render(request, 'navigate.html',{'error_message' : f"Error in getting recently played : {str(e)}"}, status=500 )
+
 		
-# class spotifySongGenres(View):
-# 	def get(self, request):
-# 		try:
+class spotifySongGenres(View):
+	def get(self, request):
+		try:
+			url = 'https://api.spotify.com/v1/artists'
+			artists = Artist.objects.all()
+			# data = [{'artist_name': a.artist_name, 'artist_id': a.artist_id} for a in artists]
+			ids = [f",{a.artist_id}" for a in artists]
+			ids = ''.join(ids)
+			ids = ids[1:]
+			params = {
+				'ids': ids
+			}
+			headers = {
+				'Authorization' : 'Bearer ' + request.session['access_token']
+			}
+			resp = requests.get(url, params=params, headers=headers)
+			resp = resp.json()
+			artGenre = []
+			for item in resp['artists']:
+				artGenre.append({
+					'Artist' : item['name'],
+					'Genres': item['genres']
+					})	
+			return JsonResponse({'Genre info: ': artGenre })
+		except Exception as e:
+			return HttpResponse(f'error :{str(e)}')
