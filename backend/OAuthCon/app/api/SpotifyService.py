@@ -3,6 +3,7 @@ import base64
 from dotenv import load_dotenv
 from urllib.parse import urlencode
 from .models import ArtistData, ListenData
+from typing import List, Tuple, Optional
 import requests
 
 #Service class to handle spotify API logic
@@ -72,13 +73,25 @@ class SpotifyAPIService:
 		#Only works up to 50
 		artist_ids = ','.join(artist_ids[0:49])
 		params = {
-			'ids': artist_ids[1:]
+			'ids': artist_ids
 		}
 		headers = {
 			'Authorization' : 'Bearer ' + accessToken
 		}
 		return requests.get(url=url, params=params, headers=headers)
-			
+
+	@staticmethod
+	def parseGenreData(data : dict) -> list:
+		dataList = []
+		for item in data['artists']:
+			genre = item['genres']
+			artist_name = item['name']
+			dataList.append({
+				'artist' : artist_name,
+				'genre' : genre
+			})
+		return dataList
+
 	@staticmethod
 	def parseSongData(data : dict) -> list:
 		dataList = []
@@ -98,7 +111,7 @@ class SpotifyAPIService:
  
 class SpotifyDataService:
 	@staticmethod
-	def writeSongs(data : list):
+	def writeSongs(data : list) -> Tuple[bool, Optional[str]]:
 		try:	
 			#Identify all existing artists in db
 			artistNames = [item['artist'] for item in data]
@@ -139,4 +152,8 @@ class SpotifyDataService:
 			return True, None
 		except Exception as e:
 			return False, str(e)
+
+	@staticmethod
+	def getArtistIds(limit : int = 50 ) -> list:
+		return  [artist.artist_id for artist in ArtistData.objects.order_by('-id')[:limit]]
 
