@@ -50,5 +50,3 @@ backend/
 ---
 
 **Author:** Kit Wickham-Jones
-
-For questions or to discuss this project, please contact me via GitHub.

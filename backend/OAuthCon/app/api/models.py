@@ -11,5 +11,7 @@ class ListenData(models.Model):
 	time = models.DateTimeField()
 
 class GenreData(models.Model):
-	artist_name = models.ForeignKey(ArtistData, on_delete=models.CASCADE),
+	artist_name = models.ForeignKey(ArtistData, on_delete=models.CASCADE)
 	genres = ArrayField(models.CharField(max_length=50))
+	#should this be unique?
+	

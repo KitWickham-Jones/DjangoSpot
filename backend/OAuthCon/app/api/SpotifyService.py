@@ -2,7 +2,7 @@ import os
 import base64
 from dotenv import load_dotenv
 from urllib.parse import urlencode
-from .models import ArtistData, ListenData
+from .models import ArtistData, ListenData, GenreData
 from typing import List, Tuple, Optional
 import requests
 
@@ -87,7 +87,7 @@ class SpotifyAPIService:
 			genre = item['genres']
 			artist_name = item['name']
 			dataList.append({
-				'artist' : artist_name,
+				'artist_name' : artist_name,
 				'genre' : genre
 			})
 		return dataList
@@ -154,6 +154,32 @@ class SpotifyDataService:
 			return False, str(e)
 
 	@staticmethod
+	#does this need a limit? could just take all then call genre api multiple times
 	def getArtistIds(limit : int = 50 ) -> list:
 		return  [artist.artist_id for artist in ArtistData.objects.order_by('-id')[:limit]]
+
+	@staticmethod
+	def writeGenres(data : list):
+		try:	
+			artist_names = [name['artist_name'] for name in data]
+			artist_objs = {artist.artist_name : artist for artist
+					in ArtistData.objects.filter(artist_name__in=artist_names)}
+
+			genre_objects = []
+			for item in data:
+				artist = artist_objs[item["artist_name"]]
+				genre_objects.append(
+						GenreData(
+							artist_name = artist,
+							genres = item['genre']
+						)
+					)
+
+			if genre_objects:
+				GenreData.objects.bulk_create(genre_objects)
+
+			return True, None
+		except Exception as e:
+			return False, str(e)
+
 
