@@ -4,20 +4,20 @@ This project is a Django-based web application that demonstrates secure integrat
 
 ## Features
 
-- **Spotify OAuth 2.0 Authentication**: Securely authenticate users with their Spotify accounts.
-- **Recent Plays Retrieval**: Fetch and display a user's recently played tracks from Spotify.
-- **Artist and Genre Data**: Store and relate artist, song, and genre information in a normalized PostgreSQL database schema.
-- **Token Refresh Handling**: Automatically refresh expired Spotify access tokens using refresh tokens.
-- **Bulk Database Operations**: Efficiently write and read large batches of Spotify data using Django ORM bulk operations.
-- **Error Handling & User Feedback**: Robust error handling with user-friendly messages and HTTP status codes.
-- **Modern Django Practices**: Uses class-based views, static and service methods, and clear separation of concerns.
+-   **Spotify OAuth 2.0 Authentication**: Securely authenticate users with their Spotify accounts.
+-   **Recent Plays Retrieval**: Fetch and display a user's recently played tracks from Spotify.
+-   **Artist and Genre Data**: Store and relate artist, song, and genre information in a normalized PostgreSQL database schema.
+-   **Token Refresh Handling**: Automatically refresh expired Spotify access tokens using refresh tokens.
+-   **Bulk Database Operations**: Efficiently write and read large batches of Spotify data using Django ORM bulk operations.
+-   **Error Handling & User Feedback**: Robust error handling with user-friendly messages and HTTP status codes.
+-   **Modern Django Practices**: Uses class-based views, static and service methods, and clear separation of concerns.
 
 ## Tech Stack
 
-- **Backend**: Python 3, Django 5
-- **Database**: PostgreSQL
-- **Containerization**: Docker (for local development and deployment)
-- **Frontend**: Minimal HTML templates (for demonstration)
+-   **Backend**: Python 3, Django 5
+-   **Database**: PostgreSQL
+-   **Containerization**: Docker (for local development and deployment)
+-   **Frontend**: Minimal HTML templates (for demonstration)
 
 ## Project Structure
 

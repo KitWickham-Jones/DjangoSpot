@@ -91,3 +91,24 @@ class SpotifyArtistGenres(View):
 
 		except Exception as e:
 			return render(request, 'navigate.html', {'error_message': f"Error in getting genres: {str(e)}"})
+
+class SpotifyReadDatabase(View):
+	def get(self, request):
+		try:
+			method = request.GET.get('method')
+			if not method:
+				raise Exception("No database method provided in request")
+			match method:
+				case "readGenres":
+					data = SpotifyDataService.readGenres()
+				case "readSongGenres":
+					data = SpotifyDataService.readSongGenre()
+				case "readArtists":
+					data = SpotifyDataService.readArtists()
+				case _:
+					raise Exception("Unknown method provided")
+	
+			return JsonResponse({'data' : data})
+
+		except Exception as e:
+			return render(request, 'navigate.html', {'error_message': f"Error in getting genres: {str(e)}"}, status=500)

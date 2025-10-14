@@ -182,4 +182,27 @@ class SpotifyDataService:
 		except Exception as e:
 			return False, str(e)
 
+	@staticmethod
+	def readSongGenre():		#get artist information
+		#get song information
+		#get genre information
+		#every song and genre has an artist.val
+		gm = {g.artist_name.artist_name : g.genres for g in GenreData.objects.select_related('artist_name').all()}
+		listen = ListenData.objects.select_related('artist_name').all()
+		outList = []
+		for val in listen:
+			outList.append({
+				'song' : val.song_id,
+				'artist_name' : val.artist_name.artist_name,
+				'genres' : gm.get(val.artist_name.artist_name)
 
+			})
+		return outList
+
+	@staticmethod
+	def readGenres():
+		return [g.genres for g in GenreData.objects.all()]
+	
+	@staticmethod
+	def readArtists():
+		return [a.artist_name for a in ArtistData.objects.all()]

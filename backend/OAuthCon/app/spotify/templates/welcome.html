@@ -6,11 +6,14 @@
 	<title>Welcome</title>
 </head>
 <body>
-	<h1>Spotify Project Links</h1>
-	<p>
+	<h1>Links</h1>
+	<div style="display: flex; flex-direction: column; gap: 8px;">
 		Login <a href = "api/login"> Here</a>
 		Recent play <a href = "api/recentPlay"> Here</a>
 		Genre Info <a href="api/genres"> Here </a>
-	</p>
+		Read Genres <a href = 'api/readDB?method=readGenres'> Here</a>
+		Read SongGenres <a href = 'api/readDB?method=readSongGenres'> Here</a>
+		Read Artists <a href = 'api/readDB?method=readArtists'> Here</a>
+	</div>
 </body>
 </html>
