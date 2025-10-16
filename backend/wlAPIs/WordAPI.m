@@ -1,4 +1,4 @@
-WordAPI[]:=
+WordCloudAPI[]:=
 	APIFunction[{},
 		Function[
 			Enclose[
@@ -21,24 +21,40 @@ WordAPI[]:=
 								"ContentType" ->"image/png"
 							|>
 						]&
-					],
-					Function[e,
-						HTTPResponse[
-						ExportForm[
-							<|
-								"Success"->"False",
-								"tag" -> e["Tag"],
-								"message" -> e["Message"]
-							
-							|>
-							, "RawJSON"],
+				],
+				Function[e,
+					HTTPResponse[
+					ExportForm[
 						<|
-							"StatusCode" ->500,
-							"ContentType" ->"application/json"
+							"Success"->"False",
+							"tag" -> e["Tag"],
+							"message" -> e["Message"]
+						
 						|>
-						]
+						, "RawJSON"],
+					<|
+						"StatusCode" ->500,
+						"ContentType" ->"application/json"
+					|>
 					]
 				]
 			]
 		]
-	
+	];
+
+apiList = {
+	{WordAPI[],			"WordCloudAPI"}
+}
+
+DeployAPI[]:=
+	Enclose[
+		MapApply[
+			Function[{expr, loc},
+				ConfirmMatch[
+					CloudDeploy[expr, loc],
+					_CloudObject
+				]
+			],
+			apiList
+		]
+	]
