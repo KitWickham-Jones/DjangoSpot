@@ -168,6 +168,9 @@ class SpotifyDataService:
 			genre_objects = []
 			for item in data:
 				artist = artist_objs[item["artist_name"]]
+				#probably dont write empty genres
+				if not item['genre']:
+					continue
 				genre_objects.append(
 						GenreData(
 							artist_name = artist,
@@ -206,3 +209,11 @@ class SpotifyDataService:
 	@staticmethod
 	def readArtists():
 		return [a.artist_name for a in ArtistData.objects.all()]
+	
+class WolframAPIService:
+
+	@staticmethod
+	def postGenreData(genreData):
+		url = "https://www.wolframcloud.com/obj/kitwj/WordCloudAPI"
+		return requests.post(url=url, json = genreData)
+	

@@ -2,7 +2,7 @@ from django.shortcuts import redirect, render
 from django.http import HttpResponse, JsonResponse
 from django.views import View
 
-from .SpotifyService import SpotifyAPIService,SpotifyDataService
+from .SpotifyService import SpotifyAPIService,SpotifyDataService, WolframAPIService
 
 # Create your views here.
 class SpotifyLogin(View):
@@ -112,3 +112,18 @@ class SpotifyReadDatabase(View):
 
 		except Exception as e:
 			return render(request, 'navigate.html', {'error_message': f"Error in getting genres: {str(e)}"}, status=500)
+
+class SpotifyGenreWordcloud(View):
+	def get(self, request):
+		try:
+			data = SpotifyDataService.readGenres()
+			resp = WolframAPIService.postGenreData(data)
+			# if resp.status_code != 200:
+			# 	raise Exception("from exceptions")
+			# return HttpResponse(data)
+			if resp.status_code !=200:
+				resp_data = resp.json()
+				raise Exception(resp_data.get('message'))
+			return HttpResponse(resp, 'image/svg+xml')
+		except Exception as e:
+			return render(request, 'navigate.html', {'error_message': f"error in wordcloud generation: {str(e)}"}, status=500)
